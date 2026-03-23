@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XO - Neural Network AI</title>
+    
+    <!-- PyScript CDN -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: floatParticle 20s infinite;
+        }
+
+        @keyframes floatParticle {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: white;
+        }
+
+        #loading-screen .loader-icon {
+            font-size: 100px;
+            margin-bottom: 30px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-25px); }
+        }
+
+        #loading-screen h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.5);
+        }
+
+        .progress-bar {
+            width: 300px;
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+            animation: loading 2s ease-in-out infinite;
+        }
+
+        @keyframes loading {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .tech-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.95), rgba(255, 140, 0, 0.95));
+            color: white;
+            padding: 12px 25px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 1em;
+            box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+            z-index: 100;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+            }
+            50% {
+                box-shadow: 0 8px 35px rgba(255, 152, 0, 0.6);
+            }
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            border-radius: 35px;
+            padding: 50px;
+            box-shadow: 
+                0 30px 80px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            text-align: center;
+            max-width: 700px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: fadeInUp 0.8s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 4em;
+            color: white;
+            text-shadow: 
+                0 0 10px rgba(255, 255, 255, 0.8),
+                0 0 20px rgba(255, 255, 255, 0.6),
+                0 0 30px rgba(255, 255, 255, 0.4),
+                3px 3px 10px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+            font-weight: 900;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 
+                    0 0 10px rgba(255, 255, 255, 0.8),
+                    0 0 20px rgba(255, 255, 255, 0.6),
+                    3px 3px 10px rgba(0, 0, 0, 0.3);
+            }
+            to {
+                text-shadow: 
+                    0 0 20px rgba(255, 255, 255, 1),
+                    0 0 30px rgba(255, 255, 255, 0.8),
+                    0 0 40px rgba(255, 255, 255, 0.6),
+                    3px 3px 10px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 30px;
+            font-size: 1.2em;
+            font-weight: 500;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .score-label {
+            color: white;
+            font-size: 1em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .score-value {
+            font-weight: 900;
+            font-size: 2.5em;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-score .score-value { color: #FFD700; }
+        .ai-score .score-value { color: #FF6B9D; }
+        .draw-score .score-value { color: rgba(255, 255, 255, 0.9); }
+
+        .settings {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 30px 0;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            gap: 25px;
+            flex-wrap: wrap;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .setting-label {
+            font-size: 1em;
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        select {
+            padding: 14px 25px;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            background: rgba(255, 255, 255, 0.9);
+            font-weight: 700;
+            color: #333;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        select:hover, select:focus {
+            border-color: rgba(255, 255, 255, 0.6);
+            outline: none;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #333;
+            border: none;
+            font-weight: 900;
+            padding: 18px 40px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+        }
+
+        .start-btn:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(255, 215, 0, 0.6);
+        }
+
+        .status {
+            font-size: 1.8em;
+            margin: 30px 0;
+            color: white;
+            font-weight: 900;
+            min-height: 50px;
+            text-shadow: 
+                0 0 10px rgba(255, 255, 255, 0.5),
+                3px 3px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 140px);
+            grid-gap: 15px;
+            margin: 40px auto;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            box-shadow: inset 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .cell {
+            width: 140px;
+            height: 140px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            font-size: 4em;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .cell:hover:not(.taken):not(:disabled) {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.15) translateY(-5px) rotate(3deg);
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell.taken, .cell:disabled {
+            cursor: not-allowed;
+        }
+
+        .cell.x {
+            color: #FFD700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .cell.o {
+            color: #FF6B9D;
+            text-shadow: 0 0 20px rgba(255, 107, 157, 0.8);
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.3);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .cell.winner {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.9) 0%, rgba(255, 140, 0, 0.9) 100%);
+            animation: winnerCelebrate 1s ease-in-out infinite;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.8);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes winnerCelebrate {
+            0%, 100% { 
+                transform: scale(1) rotate(0deg);
+            }
+            25% {
+                transform: scale(1.15) rotate(5deg);
+            }
+            75% {
+                transform: scale(1.15) rotate(-5deg);
+            }
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 35px;
+            border-radius: 15px;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            border-color: rgba(255, 255, 255, 0.8);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .tech-info {
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            font-size: 0.95em;
+            color: white;
+            border-left: 6px solid rgba(255, 215, 0, 0.8);
+            font-weight: 600;
+            line-height: 1.8;
+            text-align: left;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .ai-thinking {
+            animation: thinking 1.5s ease-in-out infinite;
+        }
+
+        @keyframes thinking {
+            0%, 100% { 
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.6;
+                transform: scale(1.05);
+            }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #FFD700;
+            position: absolute;
+            animation: confettiFall 3s linear;
+        }
+
+        @keyframes confettiFall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .board {
+                grid-template-columns: repeat(3, 110px);
+                grid-gap: 12px;
+            }
+            
+            .cell {
+                width: 110px;
+                height: 110px;
+                font-size: 3.2em;
+            }
+
+            h1 {
+                font-size: 2.8em;
+            }
+
+            .game-container {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loader-icon">🧠</div>
+        <h2>Loading Neural Network...</h2>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        <p style="margin-top: 20px; font-size: 1.2em; opacity: 0.9;">🐍 PyScript + NumPy initializing...</p>
+    </div>
+
+    <!-- Particles -->
+    <script>
+        for (let i = 0; i < 25; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.width = particle.style.height = Math.random() * 60 + 15 + 'px';
+            particle.style.animationDelay = Math.random() * 20 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+            document.body.appendChild(particle);
+        }
+        
+        // Hide loading screen when ready
+        window.addEventListener('py:ready', () => {
+            const loadingScreen = document.getElementById('loading-screen');
+            loadingScreen.style.opacity = '0';
+            loadingScreen.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+            }, 500);
+        });
+        
+        // Fallback
+        setTimeout(() => {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.display = 'none';
+            }
+        }, 10000);
+    </script>
+
+    <a href="index.html" class="back-btn">← Back to Hub</a>
+    <div class="tech-badge">🐍 PyScript + NumPy</div>
+
+    <div class="game-container">
+        <h1>❌ XO Game ⭕</h1>
+        <p class="subtitle">Neural Network AI - Python in Browser</p>
+        
+        <div class="score-board">
+            <div class="score player-score">
+                <div class="score-label">YOU</div>
+                <div class="score-value" id="player-score">0</div>
+            </div>
+            <div class="score draw-score">
+                <div class="score-label">DRAWS</div>
+                <div class="score-value" id="draw-score">0</div>
+            </div>
+            <div class="score ai-score">
+                <div class="score-label">AI</div>
+                <div class="score-value" id="ai-score">0</div>
+            </div>
+        </div>
+
+        <div class="settings">
+            <div class="setting-group">
+                <label class="setting-label">Difficulty</label>
+                <select id="difficulty">
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard" selected>Hard</option>
+                </select>
+            </div>
+            <div class="setting-group">
+                <label class="setting-label">You Play</label>
+                <select id="player">
+                    <option value="X" selected>X</option>
+                    <option value="O">O</option>
+                </select>
+            </div>
+            <button class="start-btn" id="start-btn">Start Game</button>
+        </div>
+
+        <div class="status" id="status">Click START to begin!</div>
+
+        <div class="board">
+            <button class="cell" data-index="0"></button>
+            <button class="cell" data-index="1"></button>
+            <button class="cell" data-index="2"></button>
+            <button class="cell" data-index="3"></button>
+            <button class="cell" data-index="4"></button>
+            <button class="cell" data-index="5"></button>
+            <button class="cell" data-index="6"></button>
+            <button class="cell" data-index="7"></button>
+            <button class="cell" data-index="8"></button>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="restart-btn">Restart</button>
+        </div>
+
+        <div class="tech-info">
+            <strong>🧠 Technologies Used:</strong><br>
+            • PyScript (Python 3.11 in browser)<br>
+            • NumPy (Neural Network calculations)<br>
+            • Custom 3-layer Neural Network (64→32→9 neurons)<br>
+            • ReLU & Softmax activation functions<br>
+            • Minimax Algorithm with Alpha-Beta Pruning<br>
+            • Your original tictac.py code!
+        </div>
+    </div>
+
+    <!-- Sound Effects -->
+    <script>
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(frequency, duration, type = 'sine') {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+        
+        // Expose sound functions globally for PyScript
+        window.playClickSound = () => playSound(800, 0.1, 'sine');
+        window.playWinSound = () => {
+            playSound(523, 0.15, 'square');
+            setTimeout(() => playSound(659, 0.15, 'square'), 150);
+            setTimeout(() => playSound(784, 0.3, 'square'), 300);
+        };
+        window.playLoseSound = () => {
+            playSound(400, 0.2, 'sawtooth');
+            setTimeout(() => playSound(300, 0.3, 'sawtooth'), 200);
+        };
+        window.playDrawSound = () => {
+            playSound(440, 0.2, 'triangle');
+            setTimeout(() => playSound(440, 0.2, 'triangle'), 250);
+        };
+        
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.top = '-10px';
+                    confetti.style.background = ['#FFD700', '#FF6B9D', '#4FACFE', '#00F2FE', '#F093FB'][Math.floor(Math.random() * 5)];
+                    confetti.style.width = confetti.style.height = Math.random() * 10 + 5 + 'px';
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+        
+        window.createConfetti = createConfetti;
+    </script>
+
+    <!-- PyScript Configuration -->
+    <py-config>
+        packages = ["numpy"]
+    </py-config>
+
+    <!-- Python Code -->
+    <script type="py">
+from pyscript import document
+from pyodide.ffi import create_proxy
+import numpy as np
+
+# Activation functions
+def relu(x):
+    return np.maximum(0, x)
+
+def softmax(x):
+    e = np.exp(x - np.max(x))
+    return e / e.sum()
+
+def encode_board(board):
+    result = []
+    for cell in board:
+        if cell is None: 
+            result += [1, 0, 0]
+        elif cell == 'X': 
+            result += [0, 1, 0]
+        else: 
+            result += [0, 0, 1]
+    return np.array(result, dtype=float)
+
+def build_nn(seed=42):
+    rng = np.random.default_rng(seed)
+    W1 = rng.standard_normal((64, 27)) * 0.5
+    b1 = rng.standard_normal(64) * 0.1
+    W2 = rng.standard_normal((32, 64)) * 0.5
+    b2 = rng.standard_normal(32) * 0.1
+    W3 = rng.standard_normal((9, 32)) * 0.5
+    b3 = rng.standard_normal(9) * 0.1
+    return W1, b1, W2, b2, W3, b3
+
+def forward(nn, board):
+    W1, b1, W2, b2, W3, b3 = nn
+    x = encode_board(board)
+    a1 = relu(W1 @ x + b1)
+    a2 = relu(W2 @ a1 + b2)
+    z3 = W3 @ a2 + b3
+    return softmax(z3)
+
+NN_EASY = build_nn(seed=42)
+NN_MEDIUM = build_nn(seed=137)
+
+WINNING_LINES = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6],
+]
+
+def check_winner(board):
+    for a, b, c in WINNING_LINES:
+        if board[a] and board[a] == board[b] == board[c]:
+            return {'winner': board[a], 'line': [a, b, c]}
+    if all(cell is not None for cell in board):
+        return {'winner': 'draw', 'line': []}
+    return {'winner': None, 'line': []}
+
+def minimax(board, is_maximizing, depth=0, alpha=float('-inf'), beta=float('inf')):
+    result = check_winner(board)
+    
+    if result['winner'] == ai_symbol:
+        return 10 - depth
+    if result['winner'] == player_symbol:
+        return depth - 10
+    if result['winner'] == 'draw':
+        return 0
+    
+    empty = [i for i in range(9) if board[i] is None]
+    
+    if is_maximizing:
+        best = float('-inf')
+        for i in empty:
+            board[i] = ai_symbol
+            best = max(best, minimax(board, False, depth+1, alpha, beta))
+            board[i] = None
+            alpha = max(alpha, best)
+            if beta <= alpha:
+                break
+        return best
+    else:
+        best = float('inf')
+        for i in empty:
+            board[i] = player_symbol
+            best = min(best, minimax(board, True, depth+1, alpha, beta))
+            board[i] = None
+            beta = min(beta, best)
+            if beta <= alpha:
+                break
+        return best
+
+def get_ai_move(board, difficulty):
+    empty = [i for i in range(9) if board[i] is None]
+    if not empty:
+        return None
+
+    if difficulty == 'easy':
+        scores = forward(NN_EASY, board)
+        noisy = scores + np.random.uniform(0, 2, 9)
+        noisy = [noisy[i] if i in empty else -999 for i in range(9)]
+        return int(np.argmax(noisy))
+
+    if difficulty == 'medium':
+        if np.random.random() < 0.35:
+            return int(np.random.choice(empty))
+        scores = forward(NN_MEDIUM, board)
+        masked = [scores[i] if i in empty else -999 for i in range(9)]
+        return int(np.argmax(masked))
+
+    else:
+        best_score = float('-inf')
+        best_move = empty[0]
+        for i in empty:
+            board[i] = ai_symbol
+            score = minimax(board.copy(), False)
+            board[i] = None
+            if score > best_score:
+                best_score = score
+                best_move = i
+        return best_move
+
+board = [None] * 9
+player_symbol = 'X'
+ai_symbol = 'O'
+game_active = False
+scores = {'player': 0, 'ai': 0, 'draw': 0}
+
+def update_cell(index, symbol):
+    cell = document.querySelector(f'.cell[data-index="{index}"]')
+    cell.textContent = symbol
+    cell.classList.add('taken')
+    cell.classList.add(symbol.lower())
+    # Play click sound
+    from js import window
+    window.playClickSound()
+
+def update_status(message, thinking=False):
+    status = document.getElementById('status')
+    status.textContent = message
+    if thinking:
+        status.classList.add('ai-thinking')
+    else:
+        status.classList.remove('ai-thinking')
+
+def update_scores():
+    document.getElementById('player-score').textContent = str(scores['player'])
+    document.getElementById('ai-score').textContent = str(scores['ai'])
+    document.getElementById('draw-score').textContent = str(scores['draw'])
+
+def highlight_winner(line):
+    for index in line:
+        cell = document.querySelector(f'.cell[data-index="{index}"]')
+        cell.classList.add('winner')
+
+def disable_board():
+    cells = document.querySelectorAll('.cell')
+    for cell in cells:
+        cell.disabled = True
+
+def check_game_end():
+    global game_active
+    result = check_winner(board)
+    
+    if result['winner'] == player_symbol:
+        game_active = False
+        scores['player'] += 1
+        update_scores()
+        update_status('🎉 You won! Congratulations!')
+        highlight_winner(result['line'])
+        disable_board()
+        # Play win sound and confetti
+        from js import window
+        window.playWinSound()
+        window.createConfetti()
+        return True
+    elif result['winner'] == ai_symbol:
+        game_active = False
+        scores['ai'] += 1
+        update_scores()
+        update_status('🤖 AI won! Try again!')
+        highlight_winner(result['line'])
+        disable_board()
+        # Play lose sound
+        from js import window
+        window.playLoseSound()
+        return True
+    elif result['winner'] == 'draw':
+        game_active = False
+        scores['draw'] += 1
+        update_scores()
+        update_status("🤝 It's a draw!")
+        disable_board()
+        # Play draw sound
+        from js import window
+        window.playDrawSound()
+        return True
+    
+    return False
+
+def ai_move_delayed(event=None):
+    global board, game_active
+    
+    if not game_active:
+        return
+    
+    difficulty = document.getElementById('difficulty').value
+    move = get_ai_move(board.copy(), difficulty)
+    
+    if move is None:
+        return
+    
+    board[move] = ai_symbol
+    update_cell(move, ai_symbol)
+    
+    if not check_game_end():
+        update_status('Your turn!')
+
+def handle_cell_click(event):
+    global board, game_active, player_symbol, ai_symbol
+    
+    if not game_active:
+        return
+    
+    index = int(event.target.getAttribute('data-index'))
+    
+    if board[index] is not None:
+        return
+    
+    board[index] = player_symbol
+    update_cell(index, player_symbol)
+    
+    if check_game_end():
+        return
+    
+    update_status('AI is thinking...', True)
+    
+    import asyncio
+    async def delayed_ai():
+        await asyncio.sleep(0.4)
+        ai_move_delayed()
+    
+    asyncio.create_task(delayed_ai())
+
+def start_game(event=None):
+    global board, game_active, player_symbol, ai_symbol
+    
+    player_symbol = document.getElementById('player').value
+    ai_symbol = 'O' if player_symbol == 'X' else 'X'
+    
+    board = [None] * 9
+    game_active = True
+    
+    cells = document.querySelectorAll('.cell')
+    for cell in cells:
+        cell.textContent = ''
+        cell.classList.remove('taken', 'x', 'o', 'winner')
+        cell.disabled = False
+    
+    if player_symbol == 'X':
+        update_status('Your turn! Make your move')
+    else:
+        update_status('AI is starting...', True)
+        import asyncio
+        async def delayed_ai_start():
+            await asyncio.sleep(0.5)
+            ai_move_delayed()
+        asyncio.create_task(delayed_ai_start())
+
+def setup():
+    cells = document.querySelectorAll('.cell')
+    for cell in cells:
+        cell.addEventListener('click', create_proxy(handle_cell_click))
+    
+    document.getElementById('start-btn').addEventListener('click', create_proxy(start_game))
+    document.getElementById('restart-btn').addEventListener('click', create_proxy(start_game))
+    
+    print('🎮 XO Neural AI loaded!')
+
+setup()
+    </script>
+</body>
+</html>

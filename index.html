@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Game Hub | Neutronic Gaming Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Animated background particles */
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: floatParticle 20s infinite;
+        }
+
+        @keyframes floatParticle {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            z-index: 10;
+            animation: fadeInDown 1s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            font-size: 100px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.6));
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-25px); }
+        }
+
+        h1 {
+            font-size: 4.5em;
+            color: white;
+            text-shadow: 
+                0 0 10px rgba(255, 255, 255, 0.8),
+                0 0 20px rgba(255, 255, 255, 0.6),
+                0 0 30px rgba(255, 255, 255, 0.4),
+                3px 3px 10px rgba(0, 0, 0, 0.3);
+            margin-bottom: 15px;
+            font-weight: 900;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 
+                    0 0 10px rgba(255, 255, 255, 0.8),
+                    0 0 20px rgba(255, 255, 255, 0.6),
+                    3px 3px 10px rgba(0, 0, 0, 0.3);
+            }
+            to {
+                text-shadow: 
+                    0 0 20px rgba(255, 255, 255, 1),
+                    0 0 30px rgba(255, 255, 255, 0.8),
+                    0 0 40px rgba(255, 255, 255, 0.6),
+                    3px 3px 10px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        .subtitle {
+            font-size: 1.8em;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 400;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+            z-index: 10;
+            padding: 20px;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 40px 30px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            animation: fadeInUp 0.8s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Staggered animation delays */
+        .game-card:nth-child(1) { animation-delay: 0s; }
+        .game-card:nth-child(2) { animation-delay: 0.15s; }
+        .game-card:nth-child(3) { animation-delay: 0.3s; }
+        .game-card:nth-child(4) { animation-delay: 0.45s; }
+        .game-card:nth-child(5) { animation-delay: 0.6s; }
+        .game-card:nth-child(6) { animation-delay: 0.75s; }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transform: rotate(45deg);
+            transition: all 0.6s;
+        }
+
+        .game-card:hover::before {
+            left: 100%;
+        }
+
+        .game-card:hover {
+            transform: translateY(-15px) scale(1.08);
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 
+                0 30px 80px rgba(0, 0, 0, 0.35),
+                0 0 0 3px rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .game-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.3));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .game-card:nth-child(1) .game-icon { animation-delay: 0s; }
+        .game-card:nth-child(2) .game-icon { animation-delay: 0.5s; }
+        .game-card:nth-child(3) .game-icon { animation-delay: 1s; }
+        .game-card:nth-child(4) .game-icon { animation-delay: 1.5s; }
+        .game-card:nth-child(5) .game-icon { animation-delay: 2s; }
+        .game-card:nth-child(6) .game-icon { animation-delay: 2.5s; }
+
+        .game-title {
+            font-size: 2em;
+            font-weight: 900;
+            margin-bottom: 12px;
+            text-align: center;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-description {
+            font-size: 1.05em;
+            color: rgba(255, 255, 255, 0.95);
+            text-align: center;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .game-tech {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            margin-top: auto;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .coming-soon {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .coming-soon::after {
+            content: '🚧 COMING SOON';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.95), rgba(255, 140, 0, 0.95));
+            color: white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 900;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+        }
+
+        footer {
+            margin-top: 60px;
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            z-index: 10;
+            text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+            font-size: 1.1em;
+        }
+
+        footer p {
+            margin: 8px 0;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 3em;
+            }
+
+            .logo {
+                font-size: 70px;
+            }
+            
+            .games-grid {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+
+            .game-icon {
+                font-size: 4em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2.2em;
+            }
+
+            .subtitle {
+                font-size: 1.2em;
+            }
+
+            .logo {
+                font-size: 60px;
+            }
+
+            .game-card {
+                padding: 30px 20px;
+            }
+        }
+
+        /* Pulse animation for available games */
+        .available {
+            animation: cardPulse 3s infinite;
+        }
+
+        @keyframes cardPulse {
+            0%, 100% {
+                box-shadow: 
+                    0 20px 60px rgba(0, 0, 0, 0.25),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            }
+            50% {
+                box-shadow: 
+                    0 20px 60px rgba(0, 0, 0, 0.25),
+                    0 0 0 4px rgba(255, 215, 0, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated particles -->
+    <script>
+        // Create floating particles
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.width = particle.style.height = Math.random() * 60 + 15 + 'px';
+            particle.style.animationDelay = Math.random() * 20 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+            document.body.appendChild(particle);
+        }
+    </script>
+
+    <header>
+        <div class="logo">🎮</div>
+        <h1>NEUTRONIC GAME HUB</h1>
+        <p class="subtitle">Choose Your Game & Start The Adventure!</p>
+    </header>
+
+    <div class="games-grid">
+        <!-- XO Game -->
+        <a href="xo.html" class="game-card available">
+            <div class="game-icon">❌⭕</div>
+            <div class="game-title">Tic Tac Toe</div>
+            <div class="game-description">Classic two-player game. Can you get three in a row?</div>
+            <div class="game-tech">PyScript + NumPy AI</div>
+        </a>
+
+        <!-- Tetris Game -->
+        <a href="tetris.html" class="game-card available">
+            <div class="game-icon">🧱</div>
+            <div class="game-title">Tetris</div>
+            <div class="game-description">Arrange blocks and clear lines. Don't reach the top!</div>
+            <div class="game-tech">Canvas API + JS</div>
+        </a>
+
+        <!-- Snake Game -->
+        <a href="snake.html" class="game-card available">
+            <div class="game-icon">🐍</div>
+            <div class="game-title">Snake</div>
+            <div class="game-description">Eat apples and grow. Don't bite yourself!</div>
+            <div class="game-tech">PyScript</div>
+        </a>
+
+        <!-- 2048 Game -->
+        <a href="2048.html" class="game-card available">
+            <div class="game-icon">🔢</div>
+            <div class="game-title">2048</div>
+            <div class="game-description">Merge numbers and reach 2048. With Web Audio API sounds!</div>
+            <div class="game-tech">JavaScript + Web Audio API</div>
+        </a>
+
+        <!-- Pong Game -->
+        <a href="pong.html" class="game-card coming-soon">
+            <div class="game-icon">🏓</div>
+            <div class="game-title">Pong</div>
+            <div class="game-description">Classic retro arcade game. Who will be the champion?</div>
+            <div class="game-tech">Canvas + Physics</div>
+        </a>
+
+        <!-- Space Invaders Game -->
+        <a href="space.html" class="game-card coming-soon">
+            <div class="game-icon">👾</div>
+            <div class="game-title">Space Invaders</div>
+            <div class="game-description">Defend Earth from aliens! Classic shooter.</div>
+            <div class="game-tech">Canvas + Audio</div>
+        </a>
+    </div>
+
+    <footer>
+        <p>🚀 Built with Love & Claude AI | © 2024</p>
+        <p style="margin-top: 10px; font-size: 0.95em;">Upload your code and let's upgrade together!</p>
+    </footer>
+
+    <script>
+        // Sound effect for hover
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playHoverSound() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 600;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        // Add hover sound to available games
+        document.querySelectorAll('.game-card:not(.coming-soon)').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                playHoverSound();
+            });
+        });
+
+        // Add click effect
+        document.querySelectorAll('.game-card:not(.coming-soon)').forEach(card => {
+            card.addEventListener('click', function(e) {
+                const ripple = document.createElement('div');
+                ripple.style.position = 'absolute';
+                ripple.style.borderRadius = '50%';
+                ripple.style.background = 'rgba(255, 255, 255, 0.6)';
+                ripple.style.width = ripple.style.height = '100px';
+                ripple.style.left = e.clientX - this.offsetLeft - 50 + 'px';
+                ripple.style.top = e.clientY - this.offsetTop - 50 + 'px';
+                ripple.style.animation = 'ripple 0.6s ease-out';
+                ripple.style.pointerEvents = 'none';
+                this.appendChild(ripple);
+                
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+
+        // Prevent click on coming soon games
+        document.querySelectorAll('.coming-soon').forEach(card => {
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Shake animation
+                this.style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                    this.style.animation = '';
+                }, 500);
+                
+                alert('This game is still in development! 🚧\nComing soon...');
+            });
+        });
+
+        // Add shake keyframe
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    width: 300px;
+                    height: 300px;
+                    opacity: 0;
+                }
+            }
+            @keyframes shake {
+                0%, 100% { transform: translateX(0) translateY(-15px) scale(1.08); }
+                25% { transform: translateX(-10px) translateY(-15px) scale(1.08); }
+                75% { transform: translateX(10px) translateY(-15px) scale(1.08); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

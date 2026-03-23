@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake - PyScript Edition</title>
+    
+    <!-- PyScript -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: floatParticle 20s infinite;
+        }
+
+        @keyframes floatParticle {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: white;
+        }
+
+        #loading-screen .loader-icon {
+            font-size: 100px;
+            margin-bottom: 30px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-25px); }
+        }
+
+        #loading-screen h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.5);
+        }
+
+        .progress-bar {
+            width: 300px;
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            animation: loading 2s ease-in-out infinite;
+        }
+
+        @keyframes loading {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateY(-3px);
+        }
+
+        .tech-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(255, 0, 255, 0.95), rgba(200, 0, 255, 0.95));
+            color: white;
+            padding: 12px 25px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 1em;
+            box-shadow: 
+                0 8px 25px rgba(255, 0, 255, 0.6),
+                0 0 30px rgba(255, 0, 255, 0.3);
+            z-index: 100;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 
+                0 30px 80px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            animation: fadeInUp 0.8s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 3.5em;
+            color: white;
+            text-shadow: 
+                0 0 10px rgba(255, 255, 255, 0.8),
+                0 0 20px rgba(255, 255, 255, 0.6),
+                3px 3px 10px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+            font-weight: 900;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 
+                    0 0 10px rgba(255, 255, 255, 0.8),
+                    0 0 20px rgba(255, 255, 255, 0.6),
+                    3px 3px 10px rgba(0, 0, 0, 0.3);
+            }
+            to {
+                text-shadow: 
+                    0 0 20px rgba(255, 255, 255, 1),
+                    0 0 30px rgba(255, 255, 255, 0.8),
+                    0 0 40px rgba(255, 255, 255, 0.6),
+                    3px 3px 10px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 30px;
+            font-size: 1.2em;
+            font-weight: 500;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            margin: 25px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .score-label {
+            color: white;
+            font-size: 1em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .score-value {
+            font-weight: 900;
+            font-size: 2.5em;
+            text-shadow: 
+                0 0 10px #00FFFF,
+                0 0 20px #00FFFF,
+                0 4px 10px rgba(0, 0, 0, 0.3);
+            color: #00FFFF;
+        }
+
+        .high-score .score-value {
+            color: #FF00FF;
+            text-shadow: 
+                0 0 10px #FF00FF,
+                0 0 20px #FF00FF,
+                0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        #canvas {
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(10, 10, 30, 0.95) 0%, rgba(20, 10, 40, 0.95) 100%);
+            box-shadow: 
+                0 8px 30px rgba(0, 255, 255, 0.3),
+                0 0 60px rgba(255, 0, 255, 0.2),
+                inset 0 2px 10px rgba(0, 255, 255, 0.1);
+            border: 3px solid rgba(0, 255, 255, 0.5);
+            margin: 30px 0;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        button {
+            padding: 15px 35px;
+            border-radius: 15px;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.35);
+            border-color: rgba(255, 255, 255, 0.8);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-over-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(25px);
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 
+                0 15px 50px rgba(0, 0, 0, 0.4),
+                0 0 40px rgba(0, 255, 255, 0.4);
+            display: none;
+            z-index: 10;
+            text-align: center;
+            border: 3px solid rgba(0, 255, 255, 0.7);
+        }
+
+        .game-over-overlay.show {
+            display: block;
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes popIn {
+            0% { 
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0;
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .game-over-overlay h2 {
+            background: linear-gradient(135deg, #00FFFF 0%, #FF00FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            font-weight: 900;
+        }
+
+        .info-box {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 15px;
+            border-left: 5px solid #4CAF50;
+        }
+
+        .info-box strong {
+            color: white;
+            font-size: 1.1em;
+        }
+
+        .controls-info {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95em;
+            margin-top: 15px;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loader-icon">🐍</div>
+        <h2>Loading Snake Game...</h2>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        <p style="margin-top: 20px; font-size: 1.2em; opacity: 0.9;">🐍 PyScript + Python initializing...</p>
+    </div>
+
+    <!-- Particles -->
+    <script>
+        for (let i = 0; i < 25; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.width = particle.style.height = Math.random() * 60 + 15 + 'px';
+            particle.style.animationDelay = Math.random() * 20 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+            document.body.appendChild(particle);
+        }
+        
+        // Hide loading screen
+        window.addEventListener('py:ready', () => {
+            const loadingScreen = document.getElementById('loading-screen');
+            loadingScreen.style.opacity = '0';
+            loadingScreen.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+            }, 500);
+        });
+        
+        setTimeout(() => {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.display = 'none';
+            }
+        }, 10000);
+    </script>
+
+    <a href="index.html" class="back-btn">← Back to Hub</a>
+    <div class="tech-badge">🐍 PyScript</div>
+
+    <div class="game-container">
+        <h1>🐍 Snake Game</h1>
+        <p class="subtitle">Eat apples and grow! Don't bite yourself!</p>
+        
+        <div class="score-board">
+            <div class="score">
+                <div class="score-label">Score</div>
+                <div class="score-value" id="score">0</div>
+            </div>
+            <div class="score high-score">
+                <div class="score-label">High Score</div>
+                <div class="score-value" id="high-score">0</div>
+            </div>
+        </div>
+
+        <div style="position: relative;">
+            <canvas id="canvas" width="400" height="400"></canvas>
+            <div class="game-over-overlay" id="game-over">
+                <h2>Game Over!</h2>
+                <p style="font-size: 1.5em; color: #333; margin: 15px 0;">
+                    Final Score: <strong id="final-score">0</strong>
+                </p>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="start-btn">▶️ Start Game</button>
+            <button id="restart-btn">🔄 Restart</button>
+        </div>
+
+        <div class="info-box">
+            <strong>🧠 Neural Network Apple Placement!</strong>
+            <div class="controls-info">
+                <strong>First apple:</strong> Random position 🎲<br>
+                <strong>Next apples:</strong> Placed by neural network based on:<br>
+                • Snake head position<br>
+                • Snake length<br>
+                • Strategic game difficulty<br><br>
+                <strong>🎮 Controls:</strong><br>
+                ⬆️ Arrow Up | ⬇️ Arrow Down<br>
+                ⬅️ Arrow Left | ➡️ Arrow Right
+            </div>
+        </div>
+    </div>
+
+    <!-- PyScript Configuration -->
+    <py-config>
+    </py-config>
+
+    <!-- Python Code -->
+    <script type="py">
+from pyscript import document
+from pyodide.ffi import create_proxy
+import random
+import math
+
+# Game constants
+GRID_SIZE = 20
+CELL_SIZE = 20
+CANVAS_SIZE = 400
+
+# Neon Cyberpunk Colors
+COLOR_BG = 'rgba(10, 10, 30, 0.95)'
+COLOR_SNAKE = '#00FFFF'  # Cyan neon
+COLOR_APPLE = '#FF00FF'  # Magenta neon
+COLOR_GRID = 'rgba(0, 255, 255, 0.1)'
+
+# Neural Network for AI
+class NeuralNetwork:
+    def __init__(self):
+        # Simple 3-layer network: 8 inputs -> 6 hidden -> 4 outputs
+        self.weights1 = [[random.uniform(-1, 1) for _ in range(6)] for _ in range(8)]
+        self.weights2 = [[random.uniform(-1, 1) for _ in range(4)] for _ in range(6)]
+        self.bias1 = [random.uniform(-1, 1) for _ in range(6)]
+        self.bias2 = [random.uniform(-1, 1) for _ in range(4)]
+    
+    def sigmoid(self, x):
+        return 1 / (1 + math.exp(-max(-500, min(500, x))))
+    
+    def forward(self, inputs):
+        # Hidden layer
+        hidden = []
+        for i in range(6):
+            sum_val = self.bias1[i]
+            for j in range(8):
+                sum_val += inputs[j] * self.weights1[j][i]
+            hidden.append(self.sigmoid(sum_val))
+        
+        # Output layer
+        outputs = []
+        for i in range(4):
+            sum_val = self.bias2[i]
+            for j in range(6):
+                sum_val += hidden[j] * self.weights2[j][i]
+            outputs.append(self.sigmoid(sum_val))
+        
+        return outputs
+
+# Game state
+class SnakeGame:
+    def __init__(self):
+        self.canvas = document.getElementById('canvas')
+        self.ctx = self.canvas.getContext('2d')
+        self.reset()
+        self.high_score = 0
+        self.running = False
+        self.game_loop_id = None
+        self.ai_mode = False
+        self.neural_net = NeuralNetwork()
+        
+    def reset(self):
+        # Random starting position for snake (avoid edges)
+        start_x = random.randint(3, GRID_SIZE - 4)
+        start_y = random.randint(3, GRID_SIZE - 4)
+        
+        # Random starting direction
+        directions = ['UP', 'DOWN', 'LEFT', 'RIGHT']
+        start_direction = random.choice(directions)
+        
+        # Build snake based on direction
+        if start_direction == 'UP':
+            self.snake = [[start_x, start_y], [start_x, start_y + 1], [start_x, start_y + 2]]
+        elif start_direction == 'DOWN':
+            self.snake = [[start_x, start_y], [start_x, start_y - 1], [start_x, start_y - 2]]
+        elif start_direction == 'LEFT':
+            self.snake = [[start_x, start_y], [start_x + 1, start_y], [start_x + 2, start_y]]
+        else:  # RIGHT
+            self.snake = [[start_x, start_y], [start_x - 1, start_y], [start_x - 2, start_y]]
+        
+        self.direction = start_direction
+        self.next_direction = start_direction
+        
+        # First apple is random
+        self.apple = self.spawn_apple_random()
+        
+        self.score = 0
+        self.game_over = False
+        document.getElementById('score').textContent = str(self.score)
+    
+    def spawn_apple_random(self):
+        """Spawn apple at random position (used for first apple)"""
+        while True:
+            apple = [
+                random.randint(0, GRID_SIZE - 1),
+                random.randint(0, GRID_SIZE - 1)
+            ]
+            if apple not in self.snake:
+                return apple
+        
+    def spawn_apple(self):
+        """Use neural network with randomness to decide apple placement"""
+        # Enhanced neural network for apple placement
+        # Input: snake head position + snake length + time + random seed
+        # Output: strategic grid position for apple
+        
+        head = self.snake[0]
+        snake_len = len(self.snake)
+        
+        # Add time-based and random variation
+        import time
+        time_factor = (time.time() * 1000) % 100 / 100.0  # 0-1
+        random_seed1 = random.random()
+        random_seed2 = random.random()
+        
+        # Normalize inputs (0-1 range)
+        input_x = head[0] / GRID_SIZE
+        input_y = head[1] / GRID_SIZE
+        input_len = min(snake_len / 50, 1.0)
+        
+        # Enhanced hidden layer with randomness
+        import math
+        hidden = []
+        for i in range(12):  # Increased to 12 neurons
+            # Mix deterministic and random weights
+            w1 = math.sin(i * 0.7 + time_factor * 3.14) * 0.5
+            w2 = math.cos(i * 0.7 + random_seed1 * 2) * 0.5
+            w3 = (i % 3 - 1) * 0.3 + random_seed2 * 0.2
+            w4 = math.sin(time_factor * 6.28 + i) * 0.3
+            
+            h = (input_x * w1 + 
+                 input_y * w2 + 
+                 input_len * w3 + 
+                 time_factor * w4 +
+                 random_seed1 * 0.15)
+            
+            # ReLU activation with noise
+            hidden.append(max(0, h + 0.5 + (random.random() - 0.5) * 0.2))
+        
+        # Output layer with strategic positioning
+        out_x = 0
+        out_y = 0
+        for i, h in enumerate(hidden):
+            # Add randomness to output weights
+            out_x += h * (math.cos(i * 0.5 + random_seed1) + random_seed2 * 0.3)
+            out_y += h * (math.sin(i * 0.5 + random_seed2) + random_seed1 * 0.3)
+        
+        # Sigmoid to normalize to 0-1
+        def sigmoid(x):
+            return 1 / (1 + math.exp(-max(-10, min(10, x))))
+        
+        out_x = sigmoid(out_x)
+        out_y = sigmoid(out_y)
+        
+        # Add final randomness (10% variation)
+        out_x += (random.random() - 0.5) * 0.2
+        out_y += (random.random() - 0.5) * 0.2
+        
+        # Clamp to 0-1
+        out_x = max(0, min(1, out_x))
+        out_y = max(0, min(1, out_y))
+        
+        # Convert to grid coordinates
+        apple_x = int(out_x * (GRID_SIZE - 1))
+        apple_y = int(out_y * (GRID_SIZE - 1))
+        
+        # Check if position is valid (not on snake)
+        apple = [apple_x, apple_y]
+        
+        # If on snake, try nearby positions with smart spiral
+        if apple in self.snake:
+            # Search in spiral pattern
+            for radius in range(1, GRID_SIZE):
+                # Randomize search order
+                positions = []
+                for dx in range(-radius, radius + 1):
+                    for dy in range(-radius, radius + 1):
+                        if abs(dx) == radius or abs(dy) == radius:
+                            test_x = (apple_x + dx) % GRID_SIZE
+                            test_y = (apple_y + dy) % GRID_SIZE
+                            positions.append([test_x, test_y])
+                
+                # Shuffle positions for variety
+                random.shuffle(positions)
+                
+                for test in positions:
+                    if test not in self.snake:
+                        return test
+        
+        return apple
+    
+    def get_ai_inputs(self):
+        head = self.snake[0]
+        
+        # 8 inputs for neural network:
+        # 1-4: Danger detection (UP, DOWN, LEFT, RIGHT)
+        # 5-6: Apple direction (horizontal, vertical)
+        # 7-8: Distance to walls
+        
+        inputs = []
+        
+        # Danger in each direction
+        directions = [
+            [0, -1],  # UP
+            [0, 1],   # DOWN
+            [-1, 0],  # LEFT
+            [1, 0]    # RIGHT
+        ]
+        
+        for dx, dy in directions:
+            new_pos = [head[0] + dx, head[1] + dy]
+            # Check wall or body collision
+            danger = 1.0 if (
+                new_pos[0] < 0 or new_pos[0] >= GRID_SIZE or
+                new_pos[1] < 0 or new_pos[1] >= GRID_SIZE or
+                new_pos in self.snake
+            ) else 0.0
+            inputs.append(danger)
+        
+        # Apple direction
+        inputs.append(1.0 if self.apple[0] > head[0] else -1.0)  # horizontal
+        inputs.append(1.0 if self.apple[1] > head[1] else -1.0)  # vertical
+        
+        # Distance to walls (normalized)
+        inputs.append(head[0] / GRID_SIZE)
+        inputs.append(head[1] / GRID_SIZE)
+        
+        return inputs
+    
+    def ai_decide_direction(self):
+        inputs = self.get_ai_inputs()
+        outputs = self.neural_net.forward(inputs)
+        
+        # outputs[0]=UP, [1]=DOWN, [2]=LEFT, [3]=RIGHT
+        directions = ['UP', 'DOWN', 'LEFT', 'RIGHT']
+        best_idx = outputs.index(max(outputs))
+        new_direction = directions[best_idx]
+        
+        # Prevent 180-degree turns
+        opposites = {
+            'UP': 'DOWN',
+            'DOWN': 'UP',
+            'LEFT': 'RIGHT',
+            'RIGHT': 'LEFT'
+        }
+        
+        if new_direction != opposites.get(self.direction):
+            self.next_direction = new_direction
+    
+    def draw(self):
+        # Clear canvas with dark cyberpunk background
+        self.ctx.fillStyle = COLOR_BG
+        self.ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
+        
+        # Draw animated neural network background (decorative only)
+        import time
+        t = time.time() * 0.3
+        
+        # Neural network connections
+        self.ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)'
+        self.ctx.lineWidth = 1
+        for i in range(20):
+            x1 = (i * 35 + t * 25) % CANVAS_SIZE
+            y1 = (i * 28 + t * 18) % CANVAS_SIZE
+            x2 = ((i + 6) * 42 + t * 22) % CANVAS_SIZE
+            y2 = ((i + 4) * 38 + t * 20) % CANVAS_SIZE
+            
+            # Gradient connections
+            gradient = self.ctx.createLinearGradient(x1, y1, x2, y2)
+            gradient.addColorStop(0, 'rgba(0, 255, 255, 0.15)')
+            gradient.addColorStop(0.5, 'rgba(255, 0, 255, 0.1)')
+            gradient.addColorStop(1, 'rgba(0, 255, 255, 0.05)')
+            self.ctx.strokeStyle = gradient
+            
+            self.ctx.beginPath()
+            self.ctx.moveTo(x1, y1)
+            self.ctx.lineTo(x2, y2)
+            self.ctx.stroke()
+            
+            # Neural nodes - cyan
+            self.ctx.fillStyle = 'rgba(0, 255, 255, 0.3)'
+            self.ctx.shadowColor = '#00FFFF'
+            self.ctx.shadowBlur = 5
+            self.ctx.beginPath()
+            self.ctx.arc(x1, y1, 2, 0, 2 * 3.14159)
+            self.ctx.fill()
+            
+            # Some nodes in magenta
+            if i % 3 == 0:
+                self.ctx.fillStyle = 'rgba(255, 0, 255, 0.3)'
+                self.ctx.shadowColor = '#FF00FF'
+                self.ctx.shadowBlur = 5
+                self.ctx.beginPath()
+                self.ctx.arc(x2, y2, 2, 0, 2 * 3.14159)
+                self.ctx.fill()
+        
+        self.ctx.shadowBlur = 0
+        
+        # Draw neon grid
+        self.ctx.strokeStyle = COLOR_GRID
+        self.ctx.lineWidth = 1
+        self.ctx.shadowColor = '#00FFFF'
+        self.ctx.shadowBlur = 3
+        
+        for i in range(GRID_SIZE + 1):
+            # Vertical lines
+            self.ctx.beginPath()
+            self.ctx.moveTo(i * CELL_SIZE, 0)
+            self.ctx.lineTo(i * CELL_SIZE, CANVAS_SIZE)
+            self.ctx.stroke()
+            # Horizontal lines
+            self.ctx.beginPath()
+            self.ctx.moveTo(0, i * CELL_SIZE)
+            self.ctx.lineTo(CANVAS_SIZE, i * CELL_SIZE)
+            self.ctx.stroke()
+        
+        # Draw neon snake with intense glow
+        for i, segment in enumerate(self.snake):
+            # Gradient glow based on position
+            if i == 0:
+                # Head - brightest cyan
+                self.ctx.fillStyle = '#00FFFF'
+                self.ctx.shadowColor = '#00FFFF'
+                self.ctx.shadowBlur = 20
+            elif i < 3:
+                self.ctx.fillStyle = '#00DDFF'
+                self.ctx.shadowBlur = 15
+            else:
+                self.ctx.fillStyle = '#00BBFF'
+                self.ctx.shadowBlur = 10
+            
+            # Draw glowing rounded rectangle
+            x = segment[0] * CELL_SIZE + 3
+            y = segment[1] * CELL_SIZE + 3
+            width = CELL_SIZE - 6
+            height = CELL_SIZE - 6
+            radius = 6
+            
+            # Outer glow layer
+            self.ctx.shadowBlur = i == 0 and 25 or 15
+            self.ctx.beginPath()
+            self.ctx.moveTo(x + radius, y)
+            self.ctx.lineTo(x + width - radius, y)
+            self.ctx.quadraticCurveTo(x + width, y, x + width, y + radius)
+            self.ctx.lineTo(x + width, y + height - radius)
+            self.ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height)
+            self.ctx.lineTo(x + radius, y + height)
+            self.ctx.quadraticCurveTo(x, y + height, x, y + height - radius)
+            self.ctx.lineTo(x, y + radius)
+            self.ctx.quadraticCurveTo(x, y, x + radius, y)
+            self.ctx.closePath()
+            self.ctx.fill()
+            
+            # Inner bright core on head
+            if i == 0:
+                self.ctx.fillStyle = '#FFFFFF'
+                self.ctx.shadowBlur = 10
+                self.ctx.beginPath()
+                self.ctx.arc(
+                    segment[0] * CELL_SIZE + CELL_SIZE / 2,
+                    segment[1] * CELL_SIZE + CELL_SIZE / 2,
+                    3,
+                    0,
+                    2 * 3.14159
+                )
+                self.ctx.fill()
+        
+        # Draw neon apple with magenta glow
+        # Outer glow
+        self.ctx.fillStyle = COLOR_APPLE
+        self.ctx.shadowColor = COLOR_APPLE
+        self.ctx.shadowBlur = 30
+        self.ctx.beginPath()
+        self.ctx.arc(
+            self.apple[0] * CELL_SIZE + CELL_SIZE / 2,
+            self.apple[1] * CELL_SIZE + CELL_SIZE / 2,
+            CELL_SIZE / 2 - 3,
+            0,
+            2 * 3.14159
+        )
+        self.ctx.fill()
+        
+        # Inner bright core
+        self.ctx.fillStyle = '#FFFFFF'
+        self.ctx.shadowBlur = 15
+        self.ctx.beginPath()
+        self.ctx.arc(
+            self.apple[0] * CELL_SIZE + CELL_SIZE / 2,
+            self.apple[1] * CELL_SIZE + CELL_SIZE / 2,
+            4,
+            0,
+            2 * 3.14159
+        )
+        self.ctx.fill()
+        
+        # Pulsing ring around apple
+        self.ctx.strokeStyle = '#FF00FF'
+        self.ctx.lineWidth = 2
+        self.ctx.shadowBlur = 20
+        self.ctx.beginPath()
+        self.ctx.arc(
+            self.apple[0] * CELL_SIZE + CELL_SIZE / 2,
+            self.apple[1] * CELL_SIZE + CELL_SIZE / 2,
+            CELL_SIZE / 2 - 1,
+            0,
+            2 * 3.14159
+        )
+        self.ctx.stroke()
+        
+        # Reset shadow
+        self.ctx.shadowBlur = 0
+    
+    def update(self):
+        if self.game_over or not self.running:
+            return
+        
+        # AI decides direction if in AI mode
+        if self.ai_mode:
+            self.ai_decide_direction()
+        
+        # Update direction
+        self.direction = self.next_direction
+        
+        # Calculate new head position
+        head = self.snake[0].copy()
+        
+        if self.direction == 'UP':
+            head[1] -= 1
+        elif self.direction == 'DOWN':
+            head[1] += 1
+        elif self.direction == 'LEFT':
+            head[0] -= 1
+        elif self.direction == 'RIGHT':
+            head[0] += 1
+        
+        # Check wall collision
+        if (head[0] < 0 or head[0] >= GRID_SIZE or
+            head[1] < 0 or head[1] >= GRID_SIZE):
+            self.end_game()
+            return
+        
+        # Check self collision
+        if head in self.snake:
+            self.end_game()
+            return
+        
+        # Add new head
+        self.snake.insert(0, head)
+        
+        # Check apple collision
+        if head == self.apple:
+            self.score += 10
+            document.getElementById('score').textContent = str(self.score)
+            self.apple = self.spawn_apple()
+            # Play eating sound
+            from js import window
+            window.sounds.eat()
+        else:
+            # Remove tail if no apple eaten
+            self.snake.pop()
+        
+        self.draw()
+    
+    def end_game(self):
+        self.game_over = True
+        self.running = False
+        
+        if self.score > self.high_score:
+            self.high_score = self.score
+            document.getElementById('high-score').textContent = str(self.high_score)
+        
+        document.getElementById('final-score').textContent = str(self.score)
+        document.getElementById('game-over').classList.add('show')
+        
+        # Play game over sound
+        from js import window
+        window.sounds.gameOver()
+    
+    def start(self):
+        if self.running:
+            return
+        
+        if self.game_over:
+            self.reset()
+            document.getElementById('game-over').classList.remove('show')
+        
+        self.running = True
+        self.game_loop()
+    
+    def game_loop(self):
+        if not self.running:
+            return
+        
+        self.update()
+        
+        import asyncio
+        async def next_frame():
+            await asyncio.sleep(0.15)
+            self.game_loop()
+        
+        asyncio.create_task(next_frame())
+    
+    def change_direction(self, new_direction):
+        # Prevent 180-degree turns
+        opposites = {
+            'UP': 'DOWN',
+            'DOWN': 'UP',
+            'LEFT': 'RIGHT',
+            'RIGHT': 'LEFT'
+        }
+        
+        if new_direction != opposites.get(self.direction):
+            self.next_direction = new_direction
+
+# Initialize game
+game = SnakeGame()
+game.draw()
+
+# Event handlers
+def handle_keydown(event):
+    key = event.key
+    
+    if key == 'ArrowUp':
+        event.preventDefault()
+        game.change_direction('UP')
+    elif key == 'ArrowDown':
+        event.preventDefault()
+        game.change_direction('DOWN')
+    elif key == 'ArrowLeft':
+        event.preventDefault()
+        game.change_direction('LEFT')
+    elif key == 'ArrowRight':
+        event.preventDefault()
+        game.change_direction('RIGHT')
+
+def start_game(event=None):
+    game.start()
+
+def restart_game(event=None):
+    game.reset()
+    game.draw()
+    document.getElementById('game-over').classList.remove('show')
+
+# Setup event listeners
+document.addEventListener('keydown', create_proxy(handle_keydown))
+document.getElementById('start-btn').addEventListener('click', create_proxy(start_game))
+document.getElementById('restart-btn').addEventListener('click', create_proxy(restart_game))
+
+print('🐍 Snake game loaded!')
+    </script>
+
+    <!-- Sound Effects with Web Audio API -->
+    <script>
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioContext = null;
+
+        // Initialize audio context on first user interaction
+        document.addEventListener('click', () => {
+            if (!audioContext) {
+                audioContext = new AudioContext();
+            }
+        }, { once: true });
+
+        window.sounds = {
+            eat: function() {
+                if (!audioContext) return;
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Happy eating sound - ascending tones
+                oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+                
+                oscillator.type = 'sine';
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.15);
+            },
+
+            move: function() {
+                if (!audioContext) return;
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Subtle move sound
+                oscillator.frequency.value = 150;
+                gainNode.gain.value = 0.05;
+                
+                oscillator.type = 'square';
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.03);
+            },
+
+            gameOver: function() {
+                if (!audioContext) return;
+                
+                // Descending dramatic sound
+                for (let i = 0; i < 3; i++) {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    const startTime = audioContext.currentTime + (i * 0.15);
+                    oscillator.frequency.setValueAtTime(400 - (i * 100), startTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(100 - (i * 20), startTime + 0.3);
+                    
+                    gainNode.gain.setValueAtTime(0.3, startTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+                    
+                    oscillator.type = 'sawtooth';
+                    oscillator.start(startTime);
+                    oscillator.stop(startTime + 0.3);
+                }
+            }
+        };
+    </script>
+</body>
+</html>
