@@ -354,6 +354,90 @@
             margin-top: 15px;
             line-height: 1.8;
         }
+
+        .swipe-info {
+            display: none;
+        }
+
+        .mobile-dpad {
+            display: none;
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin: 20px auto;
+        }
+
+        .mobile-dpad button {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            background: rgba(0, 255, 255, 0.3);
+            border: 2px solid rgba(0, 255, 255, 0.6);
+            color: #00FFFF;
+            font-size: 2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .mobile-dpad button:active {
+            background: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.8);
+        }
+
+        .dpad-up {
+            top: 0;
+            left: 60px;
+        }
+
+        .dpad-down {
+            bottom: 0;
+            left: 60px;
+        }
+
+        .dpad-left {
+            top: 60px;
+            left: 0;
+        }
+
+        .dpad-right {
+            top: 60px;
+            right: 0;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-dpad {
+                display: block;
+            }
+
+            .game-container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2.5em;
+            }
+
+            #canvas {
+                width: 100%;
+                max-width: 400px;
+                height: auto;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            button {
+                width: 100%;
+                padding: 12px;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -417,6 +501,7 @@
 
         <div style="position: relative;">
             <canvas id="canvas" width="400" height="400"></canvas>
+            
             <div class="game-over-overlay" id="game-over">
                 <h2>Game Over!</h2>
                 <p style="font-size: 1.5em; color: #333; margin: 15px 0;">
@@ -425,9 +510,19 @@
             </div>
         </div>
 
+        <!-- Mobile D-Pad Controls -->
+        <div class="mobile-dpad">
+            <button class="dpad-up" id="dpad-up">▲</button>
+            <button class="dpad-down" id="dpad-down">▼</button>
+            <button class="dpad-left" id="dpad-left">◄</button>
+            <button class="dpad-right" id="dpad-right">►</button>
+        </div>
+
         <div class="controls">
             <button id="start-btn">▶️ Start Game</button>
+            <button id="pause-btn" style="display: none;">⏸️ Pause</button>
             <button id="restart-btn">🔄 Restart</button>
+            <button id="sound-btn">🔊 Sound ON</button>
         </div>
 
         <div class="info-box">
@@ -440,7 +535,20 @@
                 • Strategic game difficulty<br><br>
                 <strong>🎮 Controls:</strong><br>
                 ⬆️ Arrow Up | ⬇️ Arrow Down<br>
-                ⬅️ Arrow Left | ➡️ Arrow Right
+                ⬅️ Arrow Left | ➡️ Arrow Right<br>
+                <strong>P</strong>: Pause/Resume
+            </div>
+        </div>
+
+        <div class="info-box" style="margin-top: 15px; border-left: 5px solid #FF00FF;">
+            <strong>🧠 Technologies Used:</strong>
+            <div class="controls-info">
+                • PyScript (Python 3.11 in browser)<br>
+                • Canvas API for rendering<br>
+                • Neural Network (12 hidden neurons)<br>
+                • ReLU & Sigmoid activation functions<br>
+                • Web Audio API for sound effects<br>
+                • Cyberpunk Neon design theme
             </div>
         </div>
     </div>
@@ -461,42 +569,11 @@ GRID_SIZE = 20
 CELL_SIZE = 20
 CANVAS_SIZE = 400
 
-# Neon Cyberpunk Colors
-COLOR_BG = 'rgba(10, 10, 30, 0.95)'
-COLOR_SNAKE = '#00FFFF'  # Cyan neon
-COLOR_APPLE = '#FF00FF'  # Magenta neon
-COLOR_GRID = 'rgba(0, 255, 255, 0.1)'
-
-# Neural Network for AI
-class NeuralNetwork:
-    def __init__(self):
-        # Simple 3-layer network: 8 inputs -> 6 hidden -> 4 outputs
-        self.weights1 = [[random.uniform(-1, 1) for _ in range(6)] for _ in range(8)]
-        self.weights2 = [[random.uniform(-1, 1) for _ in range(4)] for _ in range(6)]
-        self.bias1 = [random.uniform(-1, 1) for _ in range(6)]
-        self.bias2 = [random.uniform(-1, 1) for _ in range(4)]
-    
-    def sigmoid(self, x):
-        return 1 / (1 + math.exp(-max(-500, min(500, x))))
-    
-    def forward(self, inputs):
-        # Hidden layer
-        hidden = []
-        for i in range(6):
-            sum_val = self.bias1[i]
-            for j in range(8):
-                sum_val += inputs[j] * self.weights1[j][i]
-            hidden.append(self.sigmoid(sum_val))
-        
-        # Output layer
-        outputs = []
-        for i in range(4):
-            sum_val = self.bias2[i]
-            for j in range(6):
-                sum_val += hidden[j] * self.weights2[j][i]
-            outputs.append(self.sigmoid(sum_val))
-        
-        return outputs
+# Matrix Green Theme Colors
+COLOR_BG = 'rgba(0, 0, 0, 0.95)'  # Pure black
+COLOR_SNAKE = '#00FF00'  # Bright green
+COLOR_APPLE = '#FF0000'  # Red
+COLOR_GRID = 'rgba(0, 255, 0, 0.08)'  # Dim green grid
 
 # Game state
 class SnakeGame:
@@ -506,9 +583,8 @@ class SnakeGame:
         self.reset()
         self.high_score = 0
         self.running = False
+        self.paused = False
         self.game_loop_id = None
-        self.ai_mode = False
-        self.neural_net = NeuralNetwork()
         
     def reset(self):
         # Random starting position for snake (avoid edges)
@@ -639,64 +715,6 @@ class SnakeGame:
                         return test
         
         return apple
-    
-    def get_ai_inputs(self):
-        head = self.snake[0]
-        
-        # 8 inputs for neural network:
-        # 1-4: Danger detection (UP, DOWN, LEFT, RIGHT)
-        # 5-6: Apple direction (horizontal, vertical)
-        # 7-8: Distance to walls
-        
-        inputs = []
-        
-        # Danger in each direction
-        directions = [
-            [0, -1],  # UP
-            [0, 1],   # DOWN
-            [-1, 0],  # LEFT
-            [1, 0]    # RIGHT
-        ]
-        
-        for dx, dy in directions:
-            new_pos = [head[0] + dx, head[1] + dy]
-            # Check wall or body collision
-            danger = 1.0 if (
-                new_pos[0] < 0 or new_pos[0] >= GRID_SIZE or
-                new_pos[1] < 0 or new_pos[1] >= GRID_SIZE or
-                new_pos in self.snake
-            ) else 0.0
-            inputs.append(danger)
-        
-        # Apple direction
-        inputs.append(1.0 if self.apple[0] > head[0] else -1.0)  # horizontal
-        inputs.append(1.0 if self.apple[1] > head[1] else -1.0)  # vertical
-        
-        # Distance to walls (normalized)
-        inputs.append(head[0] / GRID_SIZE)
-        inputs.append(head[1] / GRID_SIZE)
-        
-        return inputs
-    
-    def ai_decide_direction(self):
-        inputs = self.get_ai_inputs()
-        outputs = self.neural_net.forward(inputs)
-        
-        # outputs[0]=UP, [1]=DOWN, [2]=LEFT, [3]=RIGHT
-        directions = ['UP', 'DOWN', 'LEFT', 'RIGHT']
-        best_idx = outputs.index(max(outputs))
-        new_direction = directions[best_idx]
-        
-        # Prevent 180-degree turns
-        opposites = {
-            'UP': 'DOWN',
-            'DOWN': 'UP',
-            'LEFT': 'RIGHT',
-            'RIGHT': 'LEFT'
-        }
-        
-        if new_direction != opposites.get(self.direction):
-            self.next_direction = new_direction
     
     def draw(self):
         # Clear canvas with dark cyberpunk background
@@ -865,10 +883,6 @@ class SnakeGame:
         if self.game_over or not self.running:
             return
         
-        # AI decides direction if in AI mode
-        if self.ai_mode:
-            self.ai_decide_direction()
-        
         # Update direction
         self.direction = self.next_direction
         
@@ -936,13 +950,38 @@ class SnakeGame:
             document.getElementById('game-over').classList.remove('show')
         
         self.running = True
+        self.paused = False
+        
+        # Show pause button, hide start button
+        document.getElementById('start-btn').style.display = 'none'
+        document.getElementById('pause-btn').style.display = 'inline-block'
+        
         self.game_loop()
+    
+    def toggle_pause(self):
+        """Toggle pause state"""
+        if not self.running or self.game_over:
+            return
+        
+        self.paused = not self.paused
+        
+        # Update button text
+        pause_btn = document.getElementById('pause-btn')
+        if self.paused:
+            pause_btn.textContent = '▶️ Resume'
+        else:
+            pause_btn.textContent = '⏸️ Pause'
     
     def game_loop(self):
         if not self.running:
             return
         
-        self.update()
+        # Only update if not paused
+        if not self.paused:
+            self.update()
+        else:
+            # Still draw when paused
+            self.draw()
         
         import asyncio
         async def next_frame():
@@ -971,6 +1010,12 @@ game.draw()
 def handle_keydown(event):
     key = event.key
     
+    # P key for pause/resume
+    if key == 'p' or key == 'P':
+        event.preventDefault()
+        game.toggle_pause()
+        return
+    
     if key == 'ArrowUp':
         event.preventDefault()
         game.change_direction('UP')
@@ -991,11 +1036,46 @@ def restart_game(event=None):
     game.reset()
     game.draw()
     document.getElementById('game-over').classList.remove('show')
+    # Reset buttons
+    document.getElementById('start-btn').style.display = 'inline-block'
+    document.getElementById('pause-btn').style.display = 'none'
+
+def toggle_pause_game(event=None):
+    game.toggle_pause()
 
 # Setup event listeners
 document.addEventListener('keydown', create_proxy(handle_keydown))
 document.getElementById('start-btn').addEventListener('click', create_proxy(start_game))
+document.getElementById('pause-btn').addEventListener('click', create_proxy(toggle_pause_game))
 document.getElementById('restart-btn').addEventListener('click', create_proxy(restart_game))
+
+# Mobile D-Pad controls
+def dpad_up(event):
+    game.change_direction('UP')
+
+def dpad_down(event):
+    game.change_direction('DOWN')
+
+def dpad_left(event):
+    game.change_direction('LEFT')
+
+def dpad_right(event):
+    game.change_direction('RIGHT')
+
+# Setup D-Pad listeners (if elements exist)
+dpad_up_btn = document.getElementById('dpad-up')
+dpad_down_btn = document.getElementById('dpad-down')
+dpad_left_btn = document.getElementById('dpad-left')
+dpad_right_btn = document.getElementById('dpad-right')
+
+if dpad_up_btn:
+    dpad_up_btn.addEventListener('click', create_proxy(dpad_up))
+if dpad_down_btn:
+    dpad_down_btn.addEventListener('click', create_proxy(dpad_down))
+if dpad_left_btn:
+    dpad_left_btn.addEventListener('click', create_proxy(dpad_left))
+if dpad_right_btn:
+    dpad_right_btn.addEventListener('click', create_proxy(dpad_right))
 
 print('🐍 Snake game loaded!')
     </script>
@@ -1004,6 +1084,7 @@ print('🐍 Snake game loaded!')
     <script>
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioContext = null;
+        let soundEnabled = true;
 
         // Initialize audio context on first user interaction
         document.addEventListener('click', () => {
@@ -1012,9 +1093,15 @@ print('🐍 Snake game loaded!')
             }
         }, { once: true });
 
+        // Sound toggle button
+        document.getElementById('sound-btn').addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-btn').textContent = soundEnabled ? '🔊 Sound ON' : '🔇 Sound OFF';
+        });
+
         window.sounds = {
             eat: function() {
-                if (!audioContext) return;
+                if (!audioContext || !soundEnabled) return;
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
                 
@@ -1034,7 +1121,7 @@ print('🐍 Snake game loaded!')
             },
 
             move: function() {
-                if (!audioContext) return;
+                if (!audioContext || !soundEnabled) return;
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
                 
@@ -1051,7 +1138,7 @@ print('🐍 Snake game loaded!')
             },
 
             gameOver: function() {
-                if (!audioContext) return;
+                if (!audioContext || !soundEnabled) return;
                 
                 // Descending dramatic sound
                 for (let i = 0; i < 3; i++) {

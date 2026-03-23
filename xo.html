@@ -618,6 +618,7 @@
 
         <div class="controls">
             <button class="btn" id="restart-btn">Restart</button>
+            <button class="btn" id="sound-btn">🔊 Sound ON</button>
         </div>
 
         <div class="tech-info">
@@ -627,15 +628,25 @@
             • Custom 3-layer Neural Network (64→32→9 neurons)<br>
             • ReLU & Softmax activation functions<br>
             • Minimax Algorithm with Alpha-Beta Pruning<br>
-            • Your original tictac.py code!
         </div>
     </div>
 
     <!-- Sound Effects -->
     <script>
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let soundEnabled = true;
+        
+        // Sound toggle button
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('sound-btn').addEventListener('click', () => {
+                soundEnabled = !soundEnabled;
+                document.getElementById('sound-btn').textContent = soundEnabled ? '🔊 Sound ON' : '🔇 Sound OFF';
+            });
+        });
         
         function playSound(frequency, duration, type = 'sine') {
+            if (!soundEnabled) return;
+            
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
             

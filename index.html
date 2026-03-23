@@ -340,6 +340,31 @@
                     inset 0 1px 0 rgba(255, 255, 255, 0.4);
             }
         }
+
+        /* Sound Toggle Button */
+        .sound-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            font-size: 1em;
+        }
+
+        .sound-toggle:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -356,6 +381,9 @@
             document.body.appendChild(particle);
         }
     </script>
+
+    <!-- Sound Toggle Button -->
+    <button class="sound-toggle" id="sound-btn">🔊 Sound ON</button>
 
     <header>
         <div class="logo">🎮</div>
@@ -397,32 +425,41 @@
         </a>
 
         <!-- Pong Game -->
-        <a href="pong.html" class="game-card coming-soon">
+        <a href="pong.html" class="game-card available">
             <div class="game-icon">🏓</div>
             <div class="game-title">Pong</div>
-            <div class="game-description">Classic retro arcade game. Who will be the champion?</div>
-            <div class="game-tech">Canvas + Physics</div>
+            <div class="game-description">Classic arcade with power-ups! 3 difficulty levels, 2-player mode, and dynamic effects!</div>
+            <div class="game-tech">Canvas + Advanced Physics</div>
         </a>
 
         <!-- Space Invaders Game -->
-        <a href="space.html" class="game-card coming-soon">
+        <a href="space.html" class="game-card available">
             <div class="game-icon">👾</div>
             <div class="game-title">Space Invaders</div>
-            <div class="game-description">Defend Earth from aliens! Classic shooter.</div>
-            <div class="game-tech">Canvas + Audio</div>
+            <div class="game-description">Defend Earth! Boss fights, power-ups, combos, and achievements!</div>
+            <div class="game-tech">Canvas + Audio + Boss AI</div>
         </a>
     </div>
 
     <footer>
         <p>🚀 Built by Maya Haeems | © 2026</p>
-        <p style="margin-top: 10px; font-size: 0.95em;">Upload your code and let's upgrade together!</p>
+        <p style="margin-top: 10px; font-size: 0.95em;">Email: Mayahee@gmail.com</p>
     </footer>
 
     <script>
         // Sound effect for hover
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let soundEnabled = true;
+
+        // Sound toggle button
+        document.getElementById('sound-btn').addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-btn').textContent = soundEnabled ? '🔊 Sound ON' : '🔇 Sound OFF';
+        });
         
         function playHoverSound() {
+            if (!soundEnabled) return;
+            
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
             

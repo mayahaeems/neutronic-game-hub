@@ -95,7 +95,7 @@
             border-radius: 25px;
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
             border: 1px solid rgba(255, 255, 255, 0.18);
-            width: 700px;
+            width: 750px;
             overflow: hidden;
         }
 
@@ -312,6 +312,162 @@
             font-size: 0.7em;
             margin-top: 5px;
         }
+
+        .tech-info {
+            background: rgba(100, 200, 255, 0.15);
+            backdrop-filter: blur(15px);
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-left: 3px solid #FFD700;
+            margin: 10px 20px 15px 20px;
+        }
+
+        .tech-title {
+            color: white;
+            font-size: 0.85em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tech-list {
+            font-size: 0.7em;
+            color: rgba(255,255,255,0.9);
+            line-height: 1.5;
+        }
+
+        .tech-item {
+            padding-left: 15px;
+            position: relative;
+            margin-bottom: 3px;
+        }
+
+        .tech-item:before {
+            content: "•";
+            position: absolute;
+            left: 8px;
+            color: #FFD700;
+        }
+
+        /* Responsive Design for Mobile */
+        .mobile-controls {
+            display: none;
+        }
+
+        .swipe-info {
+            display: none;
+            text-align: center;
+            color: white;
+            background: rgba(100, 200, 255, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 20px;
+            font-size: 0.85em;
+            line-height: 1.6;
+        }
+
+        .swipe-info strong {
+            color: #FFD700;
+        }
+
+        .mobile-controls button {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            font-weight: bold;
+        }
+
+        .mobile-controls .btn-up { grid-area: up; }
+        .mobile-controls .btn-left { grid-area: left; }
+        .mobile-controls .btn-down { grid-area: down; }
+        .mobile-controls .btn-right { grid-area: right; }
+        .mobile-controls .btn-rotate { grid-area: rotate; }
+        .mobile-controls .btn-hold { grid-area: hold; }
+        .mobile-controls .btn-drop { grid-area: drop; }
+
+        @media (max-width: 768px) {
+            .swipe-info {
+                display: block;
+            }
+
+            .dashboard {
+                width: 95vw;
+                max-width: 100%;
+            }
+
+            .main-area {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .side-panel {
+                flex-direction: row;
+                gap: 10px;
+            }
+
+            .panel-box {
+                flex: 1;
+                padding: 10px;
+            }
+
+            #tetris-board {
+                width: 100%;
+                max-width: 280px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .title {
+                font-size: 1.5em;
+            }
+
+            .tech-info {
+                font-size: 0.8em;
+            }
+
+            .back-btn, .tech-badge {
+                font-size: 0.85em;
+                padding: 8px 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard {
+                width: 98vw;
+                border-radius: 15px;
+            }
+
+            .title {
+                font-size: 1.2em;
+            }
+
+            .score-value {
+                font-size: 1.3em;
+            }
+
+            button {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+
+            .panel-title {
+                font-size: 0.75em;
+            }
+        }
     </style>
 </head>
 <body>
@@ -387,6 +543,13 @@
                     <p>Final Score: <span id="final-score">0</span></p>
                     <p style="margin-top: 10px; color: #ffd700;">High Score: <span id="final-high-score">0</span></p>
                 </div>
+                
+                <!-- Mobile Swipe Controls Info -->
+                <div class="swipe-info">
+                    <strong>📱 Touch Controls:</strong><br>
+                    Swipe ◄► to move | Swipe ▼ to drop<br>
+                    Tap to rotate | Long press for Hold
+                </div>
             </div>
 
             <!-- Right Panel -->
@@ -417,6 +580,17 @@
                 <button class="btn-restart" id="restart-btn">🔄 Restart</button>
             </div>
             <button class="btn-sound" id="sound-btn">🔊 Sound ON</button>
+        </div>
+
+        <div class="tech-info">
+            <div class="tech-title">🧠 Technologies Used:</div>
+            <div class="tech-list">
+                <div class="tech-item">Canvas API (getContext('2d'), fillRect, strokeRect)</div>
+                <div class="tech-item">JavaScript Classes & OOP</div>
+                <div class="tech-item">Web Audio API (oscillator, gainNode)</div>
+                <div class="tech-item">LocalStorage for high scores</div>
+                <div class="tech-item">CSS Glassmorphism & Animations</div>
+            </div>
         </div>
     </div>
 
@@ -847,6 +1021,71 @@
                 document.getElementById('sound-btn').addEventListener('click', () => {
                     soundEnabled = !soundEnabled;
                     document.getElementById('sound-btn').textContent = soundEnabled ? '🔊 Sound ON' : '🔇 Sound OFF';
+                });
+
+                // Touch/Swipe controls for mobile
+                let touchStartX = 0;
+                let touchStartY = 0;
+                let touchStartTime = 0;
+
+                this.canvas.addEventListener('touchstart', (e) => {
+                    if (e.touches.length === 1) {
+                        touchStartX = e.touches[0].clientX;
+                        touchStartY = e.touches[0].clientY;
+                        touchStartTime = Date.now();
+                    }
+                });
+
+                this.canvas.addEventListener('touchend', (e) => {
+                    if (!this.running || this.paused || this.gameOver) return;
+                    if (e.changedTouches.length !== 1) return;
+
+                    const touchEndX = e.changedTouches[0].clientX;
+                    const touchEndY = e.changedTouches[0].clientY;
+                    const touchEndTime = Date.now();
+                    const touchDuration = touchEndTime - touchStartTime;
+                    
+                    const deltaX = touchEndX - touchStartX;
+                    const deltaY = touchEndY - touchStartY;
+                    const absDeltaX = Math.abs(deltaX);
+                    const absDeltaY = Math.abs(deltaY);
+
+                    // Long press (>500ms) without movement = Hold
+                    if (touchDuration > 500 && absDeltaX < 30 && absDeltaY < 30) {
+                        this.holdCurrentPiece();
+                        return;
+                    }
+
+                    // Quick tap (<200ms) without movement = Rotate
+                    if (absDeltaX < 30 && absDeltaY < 30 && touchDuration < 200) {
+                        this.rotate();
+                        this.drawBoard();
+                        return;
+                    }
+
+                    // Swipe detection
+                    if (absDeltaX > absDeltaY && absDeltaX > 50) {
+                        // Horizontal swipe
+                        if (deltaX > 0) {
+                            this.move(1); // Right
+                        } else {
+                            this.move(-1); // Left
+                        }
+                    } else if (absDeltaY > absDeltaX && absDeltaY > 50) {
+                        // Vertical swipe
+                        if (deltaY > 0) {
+                            // Swipe down
+                            if (touchDuration < 150) {
+                                // Fast swipe = hard drop
+                                this.hardDrop();
+                            } else {
+                                // Slow swipe = soft drop
+                                this.drop();
+                            }
+                        }
+                    }
+
+                    this.drawBoard();
                 });
             }
 

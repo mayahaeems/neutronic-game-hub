@@ -366,6 +366,70 @@
             margin-top: 15px;
             line-height: 1.8;
         }
+
+        /* Mobile Controls */
+        .mobile-controls {
+            display: none;
+            grid-template-columns: repeat(3, 70px);
+            gap: 10px;
+            justify-content: center;
+            margin: 20px auto;
+        }
+
+        .mobile-controls button {
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
+            background: rgba(255, 193, 7, 0.3);
+            border: 3px solid rgba(255, 193, 7, 0.6);
+            color: #FFC107;
+            font-size: 2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .mobile-controls button:active {
+            background: rgba(255, 193, 7, 0.6);
+            box-shadow: 0 0 30px rgba(255, 193, 7, 0.6);
+            transform: scale(0.95);
+        }
+
+        .mobile-up { grid-column: 2; }
+        .mobile-left { grid-column: 1; grid-row: 2; }
+        .mobile-down { grid-column: 2; grid-row: 2; }
+        .mobile-right { grid-column: 3; grid-row: 2; }
+
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: grid;
+            }
+
+            .game-container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 3em;
+            }
+
+            #grid-container {
+                max-width: 100%;
+                overflow-x: auto;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -410,6 +474,15 @@
 
         <div class="controls">
             <button id="new-game-btn">🎮 New Game</button>
+            <button id="sound-btn">🔊 Sound ON</button>
+        </div>
+
+        <!-- Mobile D-Pad Controls -->
+        <div class="mobile-controls">
+            <button class="mobile-up" id="mobile-up">▲</button>
+            <button class="mobile-left" id="mobile-left">◄</button>
+            <button class="mobile-down" id="mobile-down">▼</button>
+            <button class="mobile-right" id="mobile-right">►</button>
         </div>
 
         <div class="info-box">
@@ -419,6 +492,17 @@
                 When two tiles with the same number touch, they merge into one!<br>
                 Get to the <strong>2048</strong> tile to win!<br>
                 🎵 <strong>Sounds:</strong> Move, Merge, Win, Game Over
+            </div>
+        </div>
+
+        <div class="info-box" style="margin-top: 15px; border-left: 5px solid #00BCD4;">
+            <strong>🧠 Technologies Used:</strong>
+            <div class="controls-info">
+                • Pure JavaScript (ES6 Classes)<br>
+                • Web Audio API (oscillator, gainNode)<br>
+                • LocalStorage for best score persistence<br>
+                • CSS Grid Layout & Animations<br>
+                • Glassmorphism design system
             </div>
         </div>
     </div>
@@ -679,6 +763,20 @@
                 document.getElementById('new-game-btn').addEventListener('click', () => {
                     this.restart();
                 });
+
+                // Mobile controls
+                document.getElementById('mobile-up')?.addEventListener('click', () => {
+                    if (!this.gameOver) this.move('up');
+                });
+                document.getElementById('mobile-down')?.addEventListener('click', () => {
+                    if (!this.gameOver) this.move('down');
+                });
+                document.getElementById('mobile-left')?.addEventListener('click', () => {
+                    if (!this.gameOver) this.move('left');
+                });
+                document.getElementById('mobile-right')?.addEventListener('click', () => {
+                    if (!this.gameOver) this.move('right');
+                });
             }
         }
 
@@ -690,6 +788,7 @@
     <script>
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioContext = null;
+        let soundEnabled = true;
 
         // Initialize audio context on first user interaction
         document.addEventListener('click', () => {
@@ -698,9 +797,15 @@
             }
         }, { once: true });
 
+        // Sound toggle button
+        document.getElementById('sound-btn').addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-btn').textContent = soundEnabled ? '🔊 Sound ON' : '🔇 Sound OFF';
+        });
+
         window.sounds2048 = {
             move: function() {
-                if (!audioContext) return;
+                if (!audioContext || !soundEnabled) return;
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
                 
@@ -717,7 +822,7 @@
             },
 
             merge: function(value) {
-                if (!audioContext) return;
+                if (!audioContext || !soundEnabled) return;
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
                 
@@ -738,7 +843,7 @@
             },
 
             win: function() {
-                if (!audioContext) return;
+                if (!audioContext || !soundEnabled) return;
                 // Victory fanfare
                 const notes = [523.25, 659.25, 783.99, 1046.50]; // C, E, G, C
                 notes.forEach((freq, i) => {
@@ -760,7 +865,7 @@
             },
 
             gameOver: function() {
-                if (!audioContext) return;
+                if (!audioContext || !soundEnabled) return;
                 // Descending sad sound
                 for (let i = 0; i < 3; i++) {
                     const oscillator = audioContext.createOscillator();
